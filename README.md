@@ -3,7 +3,7 @@
 | Código | Nombre | Correo |
 |:---|:---|:---|
 | 542378923 | Fulanito de Tal | fulanito.tal@miuniremington.edu.co |
-| 542378923 | Fulanito de Tal | fulanito.tal@miuniremington.edu.co |
+| 1006435854 | Axl Anzola | axl.anzola5854@miremington.edu.co |
 
 ---
 
