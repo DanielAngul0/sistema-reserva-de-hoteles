@@ -14,15 +14,15 @@ class Settings:
     # La URL del API Gateway se obtiene de las variables de entorno.
     API_GATEWAY_URL: str = os.getenv("API_GATEWAY_URL", "http://localhost:8000")
     
-    # TODO: Agrega las URLs de los microservicios si son necesarias aquí.
-    # Por ejemplo, para pruebas o scripts de utilidades.
-    # AUTH_SERVICE_URL: str = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001")
-    # CATALOG_SERVICE_URL: str = os.getenv("CATALOG_SERVICE_URL", "http://catalog-service:8002")
+    # Agrega las URLs de los microservicios si son necesarias aquí.
+    AUTH_SERVICE_URL: str = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001")
+    HOTELS_SERVICE_URL: str = os.getenv("HOTELS_SERVICE_URL", "http://hotels-service:8002")
+    ROOMS_SERVICE_URL: str = os.getenv("ROOMS_SERVICE_URL", "http://rooms-service:8003")
+    RESERVATIONS_SERVICE_URL: str = os.getenv("RESERVATIONS_SERVICE_URL", "http://reservations-service:8004")
 
-    # TODO: Agrega otras configuraciones globales.
-    # Por ejemplo, una clave secreta para la autenticación o el token JWT.
-    # SECRET_KEY: str = os.getenv("SECRET_KEY", "tu-clave-secreta-muy-segura")
-    # ALGORITHM: str = "HS256"
+    # Agrega otras configuraciones globales.
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "tu-clave-secreta-muy-segura")
+    ALGORITHM: str = "HS256"
 
 # Crea una instancia de la clase de configuración.
 settings = Settings()

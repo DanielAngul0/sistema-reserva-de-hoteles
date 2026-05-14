@@ -1,9 +1,14 @@
-# Plantilla del Proyecto del Seminario
+# Sistema de reservas de hoteles/vuelos
 
 | Código | Nombre | Correo |
 |:---|:---|:---|
+<<<<<<< HEAD
 | 542378923 | Fulanito de Tal | fulanito.tal@miuniremington.edu.co |
 | 1006435854 | Axl Anzola | axl.anzola5854@miremington.edu.co |
+=======
+| 1006072384 | Daniel Andrés Angulo Perez | daniel.angulo.2384@miremington.edu.co |
+| 542378923 | Fulanito de Tal | fulanito.tal@miuniremington.edu.co |
+>>>>>>> 3f1fea727dbab01d473c56b8b4312e18a20abfa4
 
 ---
 

@@ -1,41 +1,76 @@
 from fastapi import FastAPI, APIRouter, HTTPException
+from bson import ObjectId
 import os
+from typing import List
 
-# TODO: Importar el módulo de base de datos y los modelos
-# from .database import [tu_motor_de_base_de_datos]
-# from .models import [tus_modelos]
+from .database_mongo import get_collection
+from .models import Hotel, HotelCreate, HotelRead
 
-# TODO: Configurar la URL de la base de datos desde las variables de entorno
-# DATABASE_URL = os.getenv("DATABASE_URL")
+# Configurar la URL de la base de datos desde las variables de entorno
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 app = FastAPI()
 
-# TODO: Crea una instancia del router para organizar los endpoints
+# Crea una instancia del router para organizar los endpoints
 router = APIRouter()
 
-# TODO: Define un endpoint raíz o de salud para verificar que el servicio está funcionando
+# Define un endpoint raíz o de salud para verificar que el servicio está funcionando
 @app.get("/")
 def read_root():
-    return {"message": "Servicio de [nombre_del_servicio] en funcionamiento."}
+    return {"message": "Servicio de Hoteles en funcionamiento."}
 
 @app.get("/health")
 def health_check():
     """Endpoint de salud para verificar el estado del servicio."""
     return {"status": "ok"}
 
-# TODO: Implementa los endpoints de tu microservicio aquí
-# Ejemplo de un endpoint GET:
-# @router.get("/[ruta_del_recurso]/")
-# async def get_[recurso]():
-#     # TODO: Agrega la lógica de tu negocio aquí
-#     return {"data": "Aquí van tus datos."}
+# Implementa los endpoints de tu microservicio aquí
 
-# Ejemplo de un endpoint POST:
-# @router.post("/[ruta_del_recurso]/")
-# async def create_[recurso](item: [tu_modelo_pydantic]):
-#     # TODO: Agrega la lógica para crear un nuevo recurso
-#     return {"message": "[recurso] creado exitosamente."}
+@router.get("/hotels/", response_model=List[HotelRead])
+async def get_hotels():
+    collection = get_collection("hotels")
+    hotels = []
+    async for hotel in collection.find():
+        hotel["id"] = str(hotel["_id"])
+        del hotel["_id"]
+        hotels.append(HotelRead(**hotel))
+    return hotels
 
+@router.post("/hotels/", response_model=HotelRead)
+async def create_hotel(hotel: HotelCreate):
+    collection = get_collection("hotels")
+    hotel_dict = hotel.dict()
+    result = await collection.insert_one(hotel_dict)
+    hotel_dict["id"] = str(result.inserted_id)
+    return HotelRead(**hotel_dict)
 
-# TODO: Incluir el router en la aplicación principal
-# app.include_router(router, prefix="/api/v1")
+@router.get("/hotels/{hotel_id}", response_model=HotelRead)
+async def get_hotel(hotel_id: str):
+    collection = get_collection("hotels")
+    hotel = await collection.find_one({"_id": ObjectId(hotel_id)})
+    if hotel:
+        hotel["id"] = str(hotel["_id"])
+        del hotel["_id"]
+        return HotelRead(**hotel)
+    raise HTTPException(status_code=404, detail="Hotel not found")
+
+@router.put("/hotels/{hotel_id}", response_model=HotelRead)
+async def update_hotel(hotel_id: str, hotel: HotelCreate):
+    collection = get_collection("hotels")
+    hotel_dict = hotel.dict()
+    result = await collection.update_one({"_id": ObjectId(hotel_id)}, {"$set": hotel_dict})
+    if result.modified_count == 1:
+        hotel_dict["id"] = hotel_id
+        return HotelRead(**hotel_dict)
+    raise HTTPException(status_code=404, detail="Hotel not found")
+
+@router.delete("/hotels/{hotel_id}")
+async def delete_hotel(hotel_id: str):
+    collection = get_collection("hotels")
+    result = await collection.delete_one({"_id": ObjectId(hotel_id)})
+    if result.deleted_count == 1:
+        return {"message": "Hotel deleted"}
+    raise HTTPException(status_code=404, detail="Hotel not found")
+
+# Incluir el router en la aplicación principal
+app.include_router(router, prefix="/api/v1")

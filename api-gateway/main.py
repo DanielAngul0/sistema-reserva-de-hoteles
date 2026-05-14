@@ -24,10 +24,9 @@ router = APIRouter(prefix="/api/v1")
 # El puerto debe ser el del contenedor (ej. auth-service:8001).
 SERVICES = {
     "auth": os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001"),
-    # TODO: Agrega los URLs de los otros microservicios de tu tema.
-    # "service1_name": os.getenv("NAME1_SERVICE_URL", "http://service1-service:8002"),
-    # "service2_name": os.getenv("NAME2_SERVICE_URL", "http://service2-service:8003"),
-    # "service3_name": os.getenv("NAME3_SERVICE_URL", "http://service3-service:8004"),
+    "hotels": os.getenv("HOTELS_SERVICE_URL", "http://hotels-service:8002"),
+    "rooms": os.getenv("ROOMS_SERVICE_URL", "http://rooms-service:8003"),
+    "reservations": os.getenv("RESERVATIONS_SERVICE_URL", "http://reservations-service:8004"),
 }
 
 # TODO: Implementa una ruta genérica para redirigir peticiones GET.
@@ -36,7 +35,7 @@ async def forward_get(service_name: str, path: str, request: Request):
     if service_name not in SERVICES:
         raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found.")
     
-    service_url = f"{SERVICES[service_name]}/{path}"
+    service_url = f"{SERVICES[service_name]}/api/v1/{path}"
     
     try:
         response = requests.get(service_url, params=request.query_params)
@@ -51,11 +50,39 @@ async def forward_post(service_name: str, path: str, request: Request):
     if service_name not in SERVICES:
         raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found.")
     
-    service_url = f"{SERVICES[service_name]}/{path}"
+    service_url = f"{SERVICES[service_name]}/api/v1/{path}"
     
     try:
         # Pasa los datos JSON del cuerpo de la petición.
         response = requests.post(service_url, json=await request.json())
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"Error forwarding request to {service_name}: {e}")
+
+@router.put("/{service_name}/{path:path}")
+async def forward_put(service_name: str, path: str, request: Request):
+    if service_name not in SERVICES:
+        raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found.")
+    
+    service_url = f"{SERVICES[service_name]}/api/v1/{path}"
+    
+    try:
+        response = requests.put(service_url, json=await request.json())
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"Error forwarding request to {service_name}: {e}")
+
+@router.delete("/{service_name}/{path:path}")
+async def forward_delete(service_name: str, path: str, request: Request):
+    if service_name not in SERVICES:
+        raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found.")
+    
+    service_url = f"{SERVICES[service_name]}/api/v1/{path}"
+    
+    try:
+        response = requests.delete(service_url)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:

@@ -17,7 +17,9 @@ services:
       - "8000:8000"
     depends_on:
       - auth-service
-    # Aquí puedes agregar los otros servicios base
+      - hotels-service
+      - rooms-service
+      - reservations-service
 
   # Microservicio de Autenticación
   auth-service:
@@ -26,48 +28,89 @@ services:
     ports:
       - "8001:8001"
     environment:
-      - DATABASE_URL=mongodb://auth-db:27017/auth_db
+      - DATABASE_URL=postgresql://user:password@auth-db:5432/auth_db
     depends_on:
       - auth-db
 
   # Base de datos para el servicio de autenticación
   auth-db:
-    image: mongo:latest
+    image: postgres:latest
     container_name: auth-db
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=auth_db
     ports:
-      - "27017:27017"
+      - "5433:5432"
     volumes:
-      - auth_data:/data/db
+      - auth_data:/var/lib/postgresql/data
 
-  # --- Plantillas de Microservicios ---
-  # TODO: Copiar y modificar "service1" para cada servicio según el tema seleccionado
-  
-  # Microservicio de Nombre_del_microservicio
-  service1-service:
+  # Microservicio de Hoteles
+  hotels-service:
      build: ./services/service1 
-     container_name: service1-service
+     container_name: hotels-service
      ports:
        - "8002:8002"
      environment:
-       - DATABASE_URL=postgresql://user:password@service1-db:5432/service1_db
+       - DATABASE_URL=mongodb://hotels-db:27017/hotels_db
      depends_on:
-       - service1-db
+       - hotels-db
 
-  # Base de datos para el servicio1
-  service1-db:
+  # Base de datos para hoteles
+  hotels-db:
+     image: mongo:latest
+     container_name: hotels-db
+     ports:
+       - "27018:27017"
+     volumes:
+       - hotels_data:/data/db
+
+  # Microservicio de Habitaciones
+  rooms-service:
+     build: ./services/service2 
+     container_name: rooms-service
+     ports:
+       - "8003:8003"
+     environment:
+       - DATABASE_URL=postgresql://user:password@rooms-db:5432/rooms_db
+     depends_on:
+       - rooms-db
+
+  # Base de datos para habitaciones
+  rooms-db:
      image: postgres:latest
-     container_name: service1-db
+     container_name: rooms-db
      environment:
        - POSTGRES_USER=user
        - POSTGRES_PASSWORD=password
-       - POSTGRES_DB=service1_db
+       - POSTGRES_DB=rooms_db
      ports:
-       - "5432:5432"
+       - "5434:5432"
      volumes:
-       - service1_data:/var/lib/postgresql/data
+       - rooms_data:/var/lib/postgresql/data
+
+  # Microservicio de Reservas
+  reservations-service:
+     build: ./services/service3 
+     container_name: reservations-service
+     ports:
+       - "8004:8004"
+     environment:
+       - REDIS_URL=redis://reservations-db:6379/0
+     depends_on:
+       - reservations-db
+
+  # Base de datos para reservas
+  reservations-db:
+     image: redis:latest
+     container_name: reservations-db
+     ports:
+       - "6379:6379"
+     volumes:
+       - reservations_data:/data
 
 volumes:
   auth_data:
-  service1_data:
-  service2_data:
-  service3_data:
+  hotels_data:
+  rooms_data:
+  reservations_data:
