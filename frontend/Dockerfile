@@ -12,6 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copia el resto de los archivos de la aplicación (código, templates, estáticos).
 COPY . .
 
+ENV FLASK_APP=app.py
+
 # Exponemos el puerto en el que la aplicación Flask se ejecutará.
 EXPOSE 5000
 

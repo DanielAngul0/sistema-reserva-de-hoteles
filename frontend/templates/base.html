@@ -3,15 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }} - Taller de Microservicios</title>
+    <title>{{ title }} - Sistema de Reservas</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <header>
-        <h1>{{ title }}</h1>
-        <nav>
-            <a href="{{ url_for('index') }}">Inicio</a>
+        <div class="header-inner">
+            <div>
+                <h1>{{ title }}</h1>
+                <p class="subtitle">Selecciona una capital, crea tu cuenta y reserva tu hotel en el mundo.</p>
+            </div>
+            <nav>
+                <a href="{{ url_for('index') }}">Inicio</a>
+                {% if current_user %}
+                <a href="{{ url_for('profile') }}">Mi perfil</a>
+                {% if current_user.role == 'admin' %}
+                <a href="{{ url_for('create_hotel') }}">Crear hotel</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}">Cerrar sesión</a>
+                {% else %}
+                <a href="{{ url_for('login') }}">Iniciar sesión</a>
+                <a href="{{ url_for('register') }}">Registrarse</a>
+                {% endif %}
+                <a href="{{ url_for('about') }}">Cómo reservar</a>
             </nav>
+        </div>
     </header>
 
     <main>
@@ -19,7 +35,7 @@
     </main>
 
     <footer>
-        <p>&copy; 2025 Proyecto de Seminario</p>
+        <p>&copy; 2026 Sistema de Reservas Global</p>
     </footer>
 </body>
 </html>

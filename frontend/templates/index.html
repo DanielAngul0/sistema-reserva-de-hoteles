@@ -1,13 +1,41 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h2>{{ title }}</h2>
-    <ul>
-    {% for hotel in hotels %}
-        <li>{{ hotel.name }} - {{ hotel.location }} - {{ hotel.description }}</li>
-    {% endfor %}
-    </ul>
+<section>
+    <h2 class="page-title">Ciudades capitales disponibles</h2>
+    <p>Elige una de las 10 capitales del mundo y descubre dos hoteles disponibles en cada ciudad.</p>
+    <div class="city-select-container">
+        <label for="city-select">Selecciona una ciudad:</label>
+        <select id="city-select">
+            <option value="">-- Selecciona una ciudad --</option>
+            {% for city in cities %}
+            <option value="{{ url_for('city', city_id=city.id) }}">{{ city.capital }} ({{ city.country }})</option>
+            {% endfor %}
+        </select>
+        <button type="button" onclick="goToCity()">Ver hoteles</button>
+    </div>
+    <div class="grid">
+        {% for city in cities %}
+        <article class="card">
+            <div class="card-body">
+                <h3>{{ city.capital }}, {{ city.country }}</h3>
+                <p>{{ city.description }}</p>
+                <span>{{ (hotels_by_city[city.id]|length) if hotels_by_city and city.id in hotels_by_city else city.hotels|length }} hoteles disponibles</span>
+            </div>
+            <div class="card-body">
+                <a class="button-link" href="{{ url_for('city', city_id=city.id) }}">Ver hoteles</a>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+</section>
 
-    <a href="{{ url_for('new_item') }}">Crear un nuevo hotel</a>
-
+<script>
+    function goToCity() {
+        const select = document.getElementById('city-select');
+        if (select.value) {
+            window.location.href = select.value;
+        }
+    }
+</script>
 {% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section>
+    <h2 class="page-title">Crear una cuenta</h2>
+    <p>Regístrate para poder reservar hoteles y usar el sistema de microservicios.</p>
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+    <div class="alert alert-success">{{ success }}</div>
+    {% endif %}
+    <form action="{{ url_for('register') }}" method="POST">
+        <label for="username">Nombre de usuario</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="email">Correo electrónico</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" name="password" required>
+
+        <button type="submit">Registrar cuenta</button>
+    </form>
+</section>
+{% endblock %}

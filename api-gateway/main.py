@@ -3,6 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 import requests
 import os
 
+
+def get_forward_headers(request: Request) -> dict:
+    headers = {}
+    for name, value in request.headers.items():
+        lower_name = name.lower()
+        if lower_name.startswith("x-") or lower_name == "authorization":
+            headers[name] = value
+    return headers
+
 # Define la instancia de la aplicación FastAPI.
 app = FastAPI(title="API Gateway Taller Microservicios")
 
@@ -30,31 +39,46 @@ SERVICES = {
 }
 
 # TODO: Implementa una ruta genérica para redirigir peticiones GET.
+def build_service_url(service_name: str, path: str) -> str:
+    base_url = SERVICES[service_name].rstrip("/")
+
+    if path == "health":
+        return f"{base_url}/health"
+
+    if not path:
+        if service_name in {"hotels", "rooms", "reservations"}:
+            return f"{base_url}/api/v1/{service_name}/"
+        return f"{base_url}/api/v1/"
+
+    return f"{base_url}/api/v1/{path}"
+
 @router.get("/{service_name}/{path:path}")
 async def forward_get(service_name: str, path: str, request: Request):
     if service_name not in SERVICES:
         raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found.")
-    
-    service_url = f"{SERVICES[service_name]}/api/v1/{path}"
-    
+
+    service_url = build_service_url(service_name, path)
+
     try:
-        response = requests.get(service_url, params=request.query_params)
+        response = requests.get(service_url, params=request.query_params, headers=get_forward_headers(request))
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=500, detail=f"Error forwarding request to {service_name}: {e}")
 
-# TODO: Implementa una ruta genérica para redirigir peticiones POST.
 @router.post("/{service_name}/{path:path}")
 async def forward_post(service_name: str, path: str, request: Request):
     if service_name not in SERVICES:
         raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found.")
-    
-    service_url = f"{SERVICES[service_name]}/api/v1/{path}"
-    
+
+    service_url = build_service_url(service_name, path)
+
     try:
-        # Pasa los datos JSON del cuerpo de la petición.
-        response = requests.post(service_url, json=await request.json())
+        response = requests.post(
+            service_url,
+            json=await request.json(),
+            headers=get_forward_headers(request),
+        )
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -64,11 +88,15 @@ async def forward_post(service_name: str, path: str, request: Request):
 async def forward_put(service_name: str, path: str, request: Request):
     if service_name not in SERVICES:
         raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found.")
-    
-    service_url = f"{SERVICES[service_name]}/api/v1/{path}"
-    
+
+    service_url = build_service_url(service_name, path)
+
     try:
-        response = requests.put(service_url, json=await request.json())
+        response = requests.put(
+            service_url,
+            json=await request.json(),
+            headers=get_forward_headers(request),
+        )
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -78,11 +106,11 @@ async def forward_put(service_name: str, path: str, request: Request):
 async def forward_delete(service_name: str, path: str, request: Request):
     if service_name not in SERVICES:
         raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found.")
-    
-    service_url = f"{SERVICES[service_name]}/api/v1/{path}"
-    
+
+    service_url = build_service_url(service_name, path)
+
     try:
-        response = requests.delete(service_url)
+        response = requests.delete(service_url, headers=get_forward_headers(request))
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:

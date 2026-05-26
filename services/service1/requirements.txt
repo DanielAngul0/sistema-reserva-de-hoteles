@@ -5,7 +5,6 @@ uvicorn
 # Librerías para MongoDB
 motor
 pymongo
-bson
 
 # Si usas MongoDB:
 # motor

@@ -9,6 +9,8 @@ class Hotel(BaseModel):
     name: str
     location: str
     description: Optional[str] = None
+    stars: int
+    price: float
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Config:
@@ -21,6 +23,8 @@ class HotelCreate(BaseModel):
     name: str
     location: str
     description: Optional[str] = None
+    stars: int
+    price: float
 
 class HotelRead(Hotel):
     pass

@@ -3,9 +3,10 @@ import os
 import json
 import uuid
 from typing import List
+from datetime import datetime
 
-from .database_redis import get_redis_client
-from .models import Reservation, ReservationCreate, ReservationRead
+from database_redis import get_redis_client
+from models import Reservation, ReservationCreate, ReservationRead
 
 app = FastAPI()
 
@@ -25,7 +26,7 @@ def health_check():
 # Implementa los endpoints de tu microservicio aquí
 
 @router.get("/reservations/", response_model=List[ReservationRead])
-def get_reservations():
+def get_reservations(user_id: str = None):
     redis_client = get_redis_client()
     keys = redis_client.keys("reservation:*")
     reservations = []
@@ -33,6 +34,8 @@ def get_reservations():
         data = redis_client.get(key)
         if data:
             res_dict = json.loads(data)
+            if user_id and str(res_dict.get("user_id")) != str(user_id):
+                continue
             reservations.append(ReservationRead(**res_dict))
     return reservations
 
@@ -43,7 +46,9 @@ def create_reservation(reservation: ReservationCreate):
     res_dict = reservation.dict()
     res_dict["id"] = res_id
     res_dict["status"] = "pending"
-    res_dict["created_at"] = res_dict.get("created_at", Reservation().created_at.isoformat())
+    res_dict["created_at"] = datetime.utcnow().isoformat()
+    res_dict["check_in"] = res_dict["check_in"].isoformat()
+    res_dict["check_out"] = res_dict["check_out"].isoformat()
     redis_client.set(f"reservation:{res_id}", json.dumps(res_dict))
     return ReservationRead(**res_dict)
 
@@ -62,7 +67,10 @@ def update_reservation(reservation_id: str, reservation: ReservationCreate):
     data = redis_client.get(f"reservation:{reservation_id}")
     if data:
         res_dict = json.loads(data)
-        res_dict.update(reservation.dict())
+        update_dict = reservation.dict()
+        update_dict["check_in"] = update_dict["check_in"].isoformat()
+        update_dict["check_out"] = update_dict["check_out"].isoformat()
+        res_dict.update(update_dict)
         redis_client.set(f"reservation:{reservation_id}", json.dumps(res_dict))
         return ReservationRead(**res_dict)
     raise HTTPException(status_code=404, detail="Reservation not found")

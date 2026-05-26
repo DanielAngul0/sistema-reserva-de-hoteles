@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section>
+    <h2 class="page-title">{{ hotel.name }}</h2>
+    <div class="hotel-details">
+        <div class="hotel-info">
+            <h3>Descripción</h3>
+            <p>{{ hotel.description }}</p>
+            <p><strong>Estrellas:</strong> {{ hotel.stars }}</p>
+            <p><strong>Precio aproximado:</strong> ${{ hotel.price }} USD por noche</p>
+        </div>
+        <div class="hotel-info">
+            <h3>Reservar ahora</h3>
+            {% if error %}
+            <div class="alert alert-error">{{ error }}</div>
+            {% endif %}
+            {% if reservation %}
+            <div class="alert alert-success">
+                Reserva creada correctamente. ID de reserva: {{ reservation.id }}
+            </div>
+            <p><strong>Usuario:</strong> {{ reservation.user_id }}</p>
+            <p><strong>Entrada:</strong> {{ reservation.check_in }}</p>
+            <p><strong>Salida:</strong> {{ reservation.check_out }}</p>
+            <p><strong>Estado:</strong> {{ reservation.status }}</p>
+            {% else %}
+            {% if rooms %}
+            <div class="hotel-info">
+                <h4>Tipos de habitación disponibles</h4>
+                <ul>
+                    {% for room in rooms %}
+                    <li>
+                        <strong>{{ room.room_type }}</strong> - ${{ room.price }} USD
+                        {% if room.available %}
+                        ({{ room.available }} disponibles)
+                        {% else %}
+                        (agotada)
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            <form action="{{ url_for('hotel_detail', hotel_id=hotel.id) }}" method="POST">
+                {% if not current_user %}
+                <label for="user_id">Usuario o correo</label>
+                <input type="text" id="user_id" name="user_id" required>
+                {% endif %}
+
+                {% if rooms %}
+                <label for="room_id">Selecciona habitación</label>
+                <select id="room_id" name="room_id" required>
+                    {% for room in rooms %}
+                    <option value="{{ room.id }}">{{ room.room_type }} - ${{ room.price }} USD</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+
+                <label for="check_in">Fecha de entrada</label>
+                <input type="date" id="check_in" name="check_in" required>
+
+                <label for="check_out">Fecha de salida</label>
+                <input type="date" id="check_out" name="check_out" required>
+
+                <button type="submit">Confirmar reserva</button>
+            </form>
+            {% endif %}
+            {% if current_user and current_user.role == 'admin' %}
+            <form action="{{ url_for('delete_hotel', hotel_id=hotel.id) }}" method="POST" style="margin-top: 1rem;">
+                <button type="submit" class="button-danger">Eliminar hotel</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

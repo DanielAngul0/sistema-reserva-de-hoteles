@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section>
+    <h2 class="page-title">Editar reserva</h2>
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+    {% if reservation %}
+    <form action="{{ url_for('edit_reservation', reservation_id=reservation.id) }}" method="POST">
+        <label for="check_in">Fecha de entrada</label>
+        <input type="date" id="check_in" name="check_in" value="{{ reservation.check_in[:10] }}" required>
+
+        <label for="check_out">Fecha de salida</label>
+        <input type="date" id="check_out" name="check_out" value="{{ reservation.check_out[:10] }}" required>
+
+        <button type="submit">Guardar cambios</button>
+    </form>
+    {% else %}
+    <div class="alert alert-info">No se encontró la reserva.</div>
+    {% endif %}
+</section>
+{% endblock %}
