@@ -21,7 +21,7 @@ def wait_for_db(retries: int = 20, delay: int = 3):
     for attempt in range(retries):
         try:
             with engine.connect() as connection:
-                connection.execute("SELECT 1")
+                connection.exec_driver_sql("SELECT 1")
             return
         except OperationalError:
             if attempt + 1 == retries:

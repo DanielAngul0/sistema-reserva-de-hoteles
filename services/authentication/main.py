@@ -87,6 +87,3 @@ def get_users(db: Session = Depends(get_db)):
 
 # Incluir el router en la aplicación principal
 app.include_router(router, prefix="/api/v1")
-
-# Crear las tablas al iniciar
-create_db_and_tables()
