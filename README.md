@@ -69,4 +69,4 @@ Una vez que tengas tus servicios configurados, puedes levantar todo el stack con
 docker-compose up --build
 ```
 
-Esto construirá las imágenes y ejecutará todos los contenedores. Podrás acceder al frontend en `http://localhost:5000` y al API Gateway en `http://localhost:8000`.
+Esto construirá las imágenes y ejecutará todos los contenedores. Podrás acceder al frontend en `http://localhost:5000` y al API Gateway en `http://localhost:8000`
