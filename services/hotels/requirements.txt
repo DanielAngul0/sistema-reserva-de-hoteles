@@ -2,8 +2,9 @@
 fastapi
 uvicorn
 
-# Librerías para Redis
-redis
+# Librerías para MongoDB
+motor
+pymongo
 
 # Si usas MongoDB:
 # motor

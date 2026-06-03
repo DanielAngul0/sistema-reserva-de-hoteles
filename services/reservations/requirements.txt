@@ -2,9 +2,8 @@
 fastapi
 uvicorn
 
-# Librerías para SQL
-sqlalchemy
-psycopg2-binary
+# Librerías para Redis
+redis
 
 # Si usas MongoDB:
 # motor

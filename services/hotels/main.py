@@ -2,8 +2,8 @@ from fastapi import FastAPI, APIRouter, HTTPException, Request
 import os
 from typing import List
 
-from database_mongo import get_collection
-from models import Hotel, HotelCreate, HotelRead
+from .database_mongo import get_collection
+from .models import HotelCreate, HotelRead
 
 # Configurar la URL de la base de datos desde las variables de entorno
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -176,17 +176,21 @@ HOTEL_SEED = [
     },
 ]
 
+
 # Define un endpoint raíz o de salud para verificar que el servicio está funcionando
 @app.get("/")
 def read_root():
     return {"message": "Servicio de Hoteles en funcionamiento."}
+
 
 @app.get("/health")
 def health_check():
     """Endpoint de salud para verificar el estado del servicio."""
     return {"status": "ok"}
 
+
 # Implementa los endpoints de tu microservicio aquí
+
 
 @router.get("/hotels/", response_model=List[HotelRead])
 async def get_hotels():
@@ -197,6 +201,7 @@ async def get_hotels():
         del hotel["_id"]
         hotels.append(HotelRead(**hotel))
     return hotels
+
 
 def verify_admin(request: Request):
     role = request.headers.get("x-user-role")
@@ -213,6 +218,7 @@ async def create_hotel(hotel: HotelCreate, request: Request):
     hotel_dict["id"] = str(result.inserted_id)
     return HotelRead(**hotel_dict)
 
+
 @router.get("/hotels/{hotel_id}", response_model=HotelRead)
 async def get_hotel(hotel_id: str):
     collection = get_collection("hotels")
@@ -222,6 +228,7 @@ async def get_hotel(hotel_id: str):
         del hotel["_id"]
         return HotelRead(**hotel)
     raise HTTPException(status_code=404, detail="Hotel not found")
+
 
 @router.put("/hotels/{hotel_id}", response_model=HotelRead)
 async def update_hotel(hotel_id: str, hotel: HotelCreate, request: Request):
@@ -234,6 +241,7 @@ async def update_hotel(hotel_id: str, hotel: HotelCreate, request: Request):
         return HotelRead(**hotel_dict)
     raise HTTPException(status_code=404, detail="Hotel not found")
 
+
 @router.delete("/hotels/{hotel_id}")
 async def delete_hotel(hotel_id: str, request: Request):
     verify_admin(request)
@@ -243,12 +251,14 @@ async def delete_hotel(hotel_id: str, request: Request):
         return {"message": "Hotel deleted"}
     raise HTTPException(status_code=404, detail="Hotel not found")
 
+
 @app.on_event("startup")
 async def seed_hotels():
     collection = get_collection("hotels")
     count = await collection.count_documents({})
     if count == 0:
         await collection.insert_many(HOTEL_SEED)
+
 
 # Incluir el router en la aplicación principal
 app.include_router(router, prefix="/api/v1")

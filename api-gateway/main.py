@@ -12,6 +12,7 @@ def get_forward_headers(request: Request) -> dict:
             headers[name] = value
     return headers
 
+
 # Define la instancia de la aplicación FastAPI.
 app = FastAPI(title="API Gateway Taller Microservicios")
 
@@ -19,7 +20,9 @@ app = FastAPI(title="API Gateway Taller Microservicios")
 # Esto es esencial para permitir que el frontend se comunique con el gateway.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permite peticiones desde cualquier origen (ajustar en producción)
+    allow_origins=[
+        "*"
+    ],  # Permite peticiones desde cualquier origen (ajustar en producción)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -35,8 +38,11 @@ SERVICES = {
     "auth": os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001"),
     "hotels": os.getenv("HOTELS_SERVICE_URL", "http://hotels-service:8002"),
     "rooms": os.getenv("ROOMS_SERVICE_URL", "http://rooms-service:8003"),
-    "reservations": os.getenv("RESERVATIONS_SERVICE_URL", "http://reservations-service:8004"),
+    "reservations": os.getenv(
+        "RESERVATIONS_SERVICE_URL", "http://reservations-service:8004"
+    ),
 }
+
 
 # TODO: Implementa una ruta genérica para redirigir peticiones GET.
 def build_service_url(service_name: str, path: str) -> str:
@@ -52,24 +58,36 @@ def build_service_url(service_name: str, path: str) -> str:
 
     return f"{base_url}/api/v1/{path}"
 
+
 @router.get("/{service_name}/{path:path}")
 async def forward_get(service_name: str, path: str, request: Request):
     if service_name not in SERVICES:
-        raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found.")
+        raise HTTPException(
+            status_code=404, detail=f"Service '{service_name}' not found."
+        )
 
     service_url = build_service_url(service_name, path)
 
     try:
-        response = requests.get(service_url, params=request.query_params, headers=get_forward_headers(request))
+        response = requests.get(
+            service_url,
+            params=request.query_params,
+            headers=get_forward_headers(request),
+        )
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail=f"Error forwarding request to {service_name}: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Error forwarding request to {service_name}: {e}"
+        )
+
 
 @router.post("/{service_name}/{path:path}")
 async def forward_post(service_name: str, path: str, request: Request):
     if service_name not in SERVICES:
-        raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found.")
+        raise HTTPException(
+            status_code=404, detail=f"Service '{service_name}' not found."
+        )
 
     service_url = build_service_url(service_name, path)
 
@@ -82,12 +100,17 @@ async def forward_post(service_name: str, path: str, request: Request):
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail=f"Error forwarding request to {service_name}: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Error forwarding request to {service_name}: {e}"
+        )
+
 
 @router.put("/{service_name}/{path:path}")
 async def forward_put(service_name: str, path: str, request: Request):
     if service_name not in SERVICES:
-        raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found.")
+        raise HTTPException(
+            status_code=404, detail=f"Service '{service_name}' not found."
+        )
 
     service_url = build_service_url(service_name, path)
 
@@ -100,12 +123,17 @@ async def forward_put(service_name: str, path: str, request: Request):
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail=f"Error forwarding request to {service_name}: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Error forwarding request to {service_name}: {e}"
+        )
+
 
 @router.delete("/{service_name}/{path:path}")
 async def forward_delete(service_name: str, path: str, request: Request):
     if service_name not in SERVICES:
-        raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found.")
+        raise HTTPException(
+            status_code=404, detail=f"Service '{service_name}' not found."
+        )
 
     service_url = build_service_url(service_name, path)
 
@@ -114,12 +142,16 @@ async def forward_delete(service_name: str, path: str, request: Request):
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail=f"Error forwarding request to {service_name}: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Error forwarding request to {service_name}: {e}"
+        )
+
 
 # TODO: Agrega más rutas para otros métodos HTTP (PUT, DELETE, etc.).
 
 # Incluye el router en la aplicación principal.
 app.include_router(router)
+
 
 # Endpoint de salud para verificar el estado del gateway.
 @app.get("/health")

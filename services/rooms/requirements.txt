@@ -2,9 +2,9 @@
 fastapi
 uvicorn
 
-# Librerías para MongoDB
-motor
-pymongo
+# Librerías para SQL
+sqlalchemy
+psycopg2-binary
 
 # Si usas MongoDB:
 # motor

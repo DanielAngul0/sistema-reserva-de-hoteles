@@ -4,6 +4,7 @@ from datetime import datetime
 
 # Modelos Pydantic para MongoDB
 
+
 class Hotel(BaseModel):
     id: Optional[str] = Field(default=None, alias="_id")
     name: str
@@ -15,9 +16,8 @@ class Hotel(BaseModel):
 
     class Config:
         allow_population_by_field_name = True
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+        json_encoders = {datetime: lambda v: v.isoformat()}
+
 
 class HotelCreate(BaseModel):
     name: str
@@ -25,6 +25,7 @@ class HotelCreate(BaseModel):
     description: Optional[str] = None
     stars: int
     price: float
+
 
 class HotelRead(Hotel):
     pass

@@ -8,6 +8,7 @@ from typing import Optional
 # Define la base declarativa
 Base = declarative_base()
 
+
 # Crea tus modelos de datos aquí.
 class Room(Base):
     __tablename__ = "rooms"
@@ -22,7 +23,9 @@ class Room(Base):
     def __repr__(self):
         return f"<Room(id={self.id}, hotel_id='{self.hotel_id}', room_type='{self.room_type}')>"
 
+
 # Define los modelos Pydantic para la validación de datos.
+
 
 class RoomBase(BaseModel):
     hotel_id: str
@@ -30,12 +33,14 @@ class RoomBase(BaseModel):
     price: float
     available: Optional[int] = 1
 
+
 class RoomCreate(RoomBase):
     pass
+
 
 class RoomRead(RoomBase):
     id: int
     created_at: datetime
-    
+
     class Config:
         orm_mode = True

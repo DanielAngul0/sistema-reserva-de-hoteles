@@ -234,6 +234,7 @@ CITIES = [
     },
 ]
 
+
 def find_city(city_id):
     return next((city for city in CITIES if city["id"] == city_id), None)
 
@@ -272,7 +273,12 @@ def index():
     except requests.exceptions.RequestException:
         hotels_by_city = None
 
-    return render_template("index.html", title="Reservas de Hoteles", cities=CITIES, hotels_by_city=hotels_by_city)
+    return render_template(
+        "index.html",
+        title="Reservas de Hoteles",
+        cities=CITIES,
+        hotels_by_city=hotels_by_city,
+    )
 
 
 @app.route("/city/<city_id>")
@@ -290,7 +296,12 @@ def city(city_id):
     except requests.exceptions.RequestException:
         hotels = city_data["hotels"]
 
-    return render_template("city.html", title=f"Hoteles en {city_data['capital']}", city=city_data, hotels=hotels)
+    return render_template(
+        "city.html",
+        title=f"Hoteles en {city_data['capital']}",
+        city=city_data,
+        hotels=hotels,
+    )
 
 
 @app.route("/hotel/<hotel_id>", methods=["GET", "POST"])
@@ -368,7 +379,9 @@ def register():
         }
 
         try:
-            response = requests.post(f"{API_GATEWAY_URL}/api/v1/auth/register/", json=register_data)
+            response = requests.post(
+                f"{API_GATEWAY_URL}/api/v1/auth/register/", json=register_data
+            )
             response.raise_for_status()
             success = "Cuenta creada correctamente. Ahora puedes reservar tu hotel."
         except requests.exceptions.RequestException as e:
@@ -377,7 +390,9 @@ def register():
             else:
                 error = f"No se pudo registrar el usuario: {e}"
 
-    return render_template("register.html", title="Crear Cuenta", error=error, success=success)
+    return render_template(
+        "register.html", title="Crear Cuenta", error=error, success=success
+    )
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -389,7 +404,9 @@ def login():
             "password": request.form.get("password"),
         }
         try:
-            response = requests.post(f"{API_GATEWAY_URL}/api/v1/auth/login/", json=login_data)
+            response = requests.post(
+                f"{API_GATEWAY_URL}/api/v1/auth/login/", json=login_data
+            )
             response.raise_for_status()
             user = response.json()
             session["user"] = user
@@ -427,7 +444,9 @@ def profile():
     except requests.exceptions.RequestException as e:
         error = f"No se pudo cargar tus reservas: {e}"
 
-    return render_template("profile.html", title="Mi Perfil", reservations=reservations, error=error)
+    return render_template(
+        "profile.html", title="Mi Perfil", reservations=reservations, error=error
+    )
 
 
 @app.route("/reservation/<reservation_id>/cancel", methods=["POST"])

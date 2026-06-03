@@ -4,8 +4,8 @@ import os
 from typing import List
 from passlib.context import CryptContext
 
-from database_sql import get_db, create_db_and_tables, SessionLocal
-from models import User, UserCreate, UserRead, UserLogin
+from .database_sql import get_db, create_db_and_tables, SessionLocal
+from .models import User, UserCreate, UserRead, UserLogin
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
@@ -14,17 +14,21 @@ app = FastAPI()
 # Crea una instancia del router para organizar los endpoints
 router = APIRouter()
 
+
 # Define un endpoint raíz o de salud para verificar que el servicio está funcionando
 @app.get("/")
 def read_root():
     return {"message": "Servicio de Autenticación en funcionamiento."}
+
 
 @app.get("/health")
 def health_check():
     """Endpoint de salud para verificar el estado del servicio."""
     return {"status": "ok"}
 
+
 # Implementa los endpoints de tu microservicio aquí
+
 
 @router.post("/register/", response_model=UserRead)
 def register(user: UserCreate, db: Session = Depends(get_db)):
@@ -46,10 +50,13 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return db_user
 
+
 @router.post("/login/")
 def login(credentials: UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.username == credentials.username).first()
-    if not db_user or not pwd_context.verify(credentials.password, db_user.hashed_password):
+    if not db_user or not pwd_context.verify(
+        credentials.password, db_user.hashed_password
+    ):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     return {
         "id": db_user.id,
@@ -57,6 +64,7 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
         "email": db_user.email,
         "role": db_user.role,
     }
+
 
 @app.on_event("startup")
 def create_default_superuser():
@@ -80,10 +88,12 @@ def create_default_superuser():
     finally:
         db.close()
 
+
 @router.get("/users/", response_model=List[UserRead])
 def get_users(db: Session = Depends(get_db)):
     users = db.query(User).all()
     return users
+
 
 # Incluir el router en la aplicación principal
 app.include_router(router, prefix="/api/v1")
