@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt -r services/authentication/requirements.txt -r services/service1/requirements.txt -r services/service2/requirements.txt -r services/service3/requirements.txt
+          pip install -r requirements-dev.txt -r services/authentication/requirements.txt -r services/hotels/requirements.txt -r services/rooms/requirements.txt -r services/reservations/requirements.txt
 
       - name: Run Ruff linting
         run: ruff check --output-format=concise .
