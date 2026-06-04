@@ -4,11 +4,13 @@ import os
 from typing import List
 from passlib.context import CryptContext
 
-from .database_sql import get_db, create_db_and_tables, SessionLocal
-from .models import User, UserCreate, UserRead, UserLogin
+from database_sql import get_db, create_db_and_tables, SessionLocal
+from auth_models import User, UserCreate, UserRead, UserLogin
 
+# Configura el contexto de hashing de contraseñas
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
+# Crea la aplicación FastAPI
 app = FastAPI()
 
 # Crea una instancia del router para organizar los endpoints
@@ -21,22 +23,19 @@ def read_root():
     return {"message": "Servicio de Autenticación en funcionamiento."}
 
 
+# Endpoint de salud para verificar el estado del servicio
 @app.get("/health")
 def health_check():
     """Endpoint de salud para verificar el estado del servicio."""
     return {"status": "ok"}
 
 
-# Implementa los endpoints de tu microservicio aquí
-
-
+# Endpoint para registrar un nuevo usuario
 @router.post("/register/", response_model=UserRead)
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.username == user.username).first()
-    if db_user:
+    if db.query(User).filter(User.username == user.username).first():
         raise HTTPException(status_code=400, detail="Username already registered")
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if db_user:
+    if db.query(User).filter(User.email == user.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
     hashed_password = pwd_context.hash(user.password)
     db_user = User(
@@ -51,6 +50,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     return db_user
 
 
+# Endpoint para iniciar sesión y obtener un token
 @router.post("/login/")
 def login(credentials: UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.username == credentials.username).first()
@@ -66,6 +66,13 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
     }
 
 
+# Endpoint para obtener la lista de usuarios
+@router.get("/users/", response_model=List[UserRead])
+def get_users(db: Session = Depends(get_db)):
+    return db.query(User).all()
+
+
+# Crea un superusuario por defecto al iniciar la aplicación
 @app.on_event("startup")
 def create_default_superuser():
     create_db_and_tables()
@@ -74,8 +81,7 @@ def create_default_superuser():
     password = os.getenv("SUPERUSER_PASSWORD", "admin123")
     db = SessionLocal()
     try:
-        existing = db.query(User).filter(User.username == username).first()
-        if not existing:
+        if not db.query(User).filter(User.username == username).first():
             hashed_password = pwd_context.hash(password)
             admin_user = User(
                 username=username,
@@ -89,11 +95,5 @@ def create_default_superuser():
         db.close()
 
 
-@router.get("/users/", response_model=List[UserRead])
-def get_users(db: Session = Depends(get_db)):
-    users = db.query(User).all()
-    return users
-
-
-# Incluir el router en la aplicación principal
+# Incluye el router en la aplicación principal
 app.include_router(router, prefix="/api/v1")

@@ -46,7 +46,7 @@ services:
       - auth_data:/var/lib/postgresql
 
   hotels-service:
-    build: ./services/hotels          # ← corregido
+    build: ./services/hotels
     container_name: hotels-service
     ports:
       - "8002:8002"
@@ -64,7 +64,7 @@ services:
       - hotels_data:/data/db
 
   rooms-service:
-    build: ./services/rooms           # ← corregido
+    build: ./services/rooms
     container_name: rooms-service
     ports:
       - "8003:8003"
@@ -86,7 +86,7 @@ services:
       - rooms_data:/var/lib/postgresql
 
   reservations-service:
-    build: ./services/reservations    # ← corregido
+    build: ./services/reservations
     container_name: reservations-service
     ports:
       - "8004:8004"

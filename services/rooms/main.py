@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 import os
 from typing import List
 
-from .database_sql import get_db, create_db_and_tables
-from .models import Room, RoomCreate, RoomRead
+from database_sql import get_db, create_db_and_tables
+from room_models import Room, RoomCreate, RoomRead
 
 # Configurar la URL de la base de datos desde las variables de entorno
 DATABASE_URL = os.getenv("DATABASE_URL")

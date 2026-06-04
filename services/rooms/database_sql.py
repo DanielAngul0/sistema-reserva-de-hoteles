@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 # Importa la base declarativa del archivo models.py
-from .models import Base
+from room_models import Base
 
 # Obtiene la URL de la base de datos de las variables de entorno.
 # Asegúrate de que esta variable esté definida en el archivo docker-compose.yml.

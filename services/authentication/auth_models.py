@@ -1,8 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import declarative_base
 from datetime import datetime
-
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 # Define la base declarativa
 Base = declarative_base()
@@ -44,6 +43,4 @@ class UserRead(UserBase):
     id: int
     role: str
     created_at: datetime
-
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

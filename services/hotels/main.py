@@ -2,8 +2,8 @@ from fastapi import FastAPI, APIRouter, HTTPException, Request
 import os
 from typing import List
 
-from .database_mongo import get_collection
-from .models import HotelCreate, HotelRead
+from database_mongo import get_collection
+from hotel_models import HotelCreate, HotelRead
 
 # Configurar la URL de la base de datos desde las variables de entorno
 DATABASE_URL = os.getenv("DATABASE_URL")

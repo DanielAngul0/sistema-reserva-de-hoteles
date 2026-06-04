@@ -4,8 +4,8 @@ import uuid
 from typing import List
 from datetime import datetime
 
-from .database_redis import get_redis_client
-from .models import ReservationCreate, ReservationRead
+from database_redis import get_redis_client
+from reservation_models import ReservationCreate, ReservationRead
 
 app = FastAPI()
 
