@@ -335,14 +335,20 @@ def hotel_detail(hotel_id):
     if request.method == "POST":
         user = session.get("user")
         if not user:
-            error = "Debes iniciar sesión para crear una reserva."
+            return redirect(url_for("login"))
+        
+        room_id = request.form.get("room_id")
+        check_in = request.form.get("check_in")
+        check_out = request.form.get("check_out")
+        
+        if not room_id or not check_in or not check_out:
+            error = "Todos los campos son requeridos."
         else:
-            room_id = request.form.get("room_id") or hotel_id
             reservation_data = {
-                "user_id": user.get("id"),
+                "user_id": str(user.get("id")),
                 "room_id": room_id,
-                "check_in": request.form.get("check_in"),
-                "check_out": request.form.get("check_out"),
+                "check_in": check_in,
+                "check_out": check_out,
             }
 
             try:
@@ -360,6 +366,7 @@ def hotel_detail(hotel_id):
         "hotel.html",
         title=hotel["name"],
         hotel=hotel,
+        hotel_id=hotel_id,
         rooms=rooms,
         error=error,
         reservation=reservation,
@@ -569,6 +576,23 @@ def delete_hotel(hotel_id):
 @app.route("/about")
 def about():
     return render_template("about.html", title="¿Cómo reservar?")
+
+
+@app.route("/reservation/<reservation_id>/pay", methods=["POST"])
+def pay_reservation(reservation_id):
+    user = session.get("user")
+    if not user:
+        return redirect(url_for("login"))
+
+    try:
+        response = requests.post(
+            f"{API_GATEWAY_URL}/api/v1/reservations/{reservation_id}/pay",
+            headers=get_request_headers(),
+        )
+        response.raise_for_status()
+    except requests.exceptions.RequestException:
+        pass
+    return redirect(url_for("profile"))
 
 
 if __name__ == "__main__":

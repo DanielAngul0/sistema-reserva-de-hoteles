@@ -44,7 +44,7 @@ def build_service_url(service_name: str, path: str) -> str:
         if service_name in {"hotels", "rooms", "reservations"}:
             return f"{base_url}/api/v1/{service_name}/"
         return f"{base_url}/api/v1/"
-    return f"{base_url}/api/v1/{path}"
+    return f"{base_url}/api/v1/{service_name}/{path}"
 
 
 # Función auxiliar para procesar la respuesta del servicio

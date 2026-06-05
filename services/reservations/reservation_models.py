@@ -12,13 +12,15 @@ class Reservation(BaseModel):
     check_in: datetime
     check_out: datetime
     status: str = "pending"
+    payment_status: str = "pending"  # pending, completed, cancelled
+    total_price: Optional[float] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class ReservationCreate(BaseModel):
     user_id: str
     room_id: str
-    check_in: datetime
+    check_in: datetime  # FastAPI convierte strings ISO formato automáticamente
     check_out: datetime
 
 
