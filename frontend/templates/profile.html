@@ -12,21 +12,17 @@
         {% for reservation in reservations %}
         <div class="reservation-card">
             <div class="reservation-header">
-                <h3>Habitación {{ reservation.room_id }}</h3>
+                <h3>{{ reservation.room_name or 'Habitación ' + reservation.room_id|string }}</h3>
                 <span class="status-badge status-{{ reservation.status }}">{{ reservation.status }}</span>
             </div>
             <div class="reservation-body">
                 <div class="reservation-info">
                     <div class="info-group">
-                        <label>ID de Reserva</label>
-                        <p class="code">{{ reservation.id }}</p>
-                    </div>
-                    <div class="info-group">
-                        <label>Entrada</label>
+                        <label>Fecha de Entrada</label>
                         <p>{{ reservation.check_in }}</p>
                     </div>
                     <div class="info-group">
-                        <label>Salida</label>
+                        <label>Fecha de Salida</label>
                         <p>{{ reservation.check_out }}</p>
                     </div>
                     <div class="info-group">
@@ -40,23 +36,18 @@
                 </div>
             </div>
             <div class="reservation-footer">
-                <a class="button-link" href="{{ url_for('edit_reservation', reservation_id=reservation.id) }}">Editar</a>
+                <a class="button-link button-small" href="{{ url_for('edit_reservation', reservation_id=reservation.id) }}">Editar</a>
                 {% if reservation.payment_status != 'pagado' %}
-                <div style="display:inline-block; margin: 0 0.5rem;">
-                    <select id="payment_method_{{ reservation.id }}" style="padding: 0.5rem; border-radius: 4px; background: rgba(57, 255, 20, 0.1); color: var(--neon-lime); border: 1px solid var(--neon-lime);">
-                        <option value="tarjeta">💳 Tarjeta</option>
-                        <option value="transferencia">🏦 Transferencia</option>
-                        <option value="paypal">🔷 PayPal</option>
-                        <option value="efectivo">💵 Efectivo</option>
-                    </select>
-                </div>
-                <form action="{{ url_for('pay_reservation', reservation_id=reservation.id) }}" method="POST" style="display:inline-block; margin: 0;">
-                    <input type="hidden" name="payment_method" id="payment_method_input_{{ reservation.id }}" value="tarjeta">
-                    <button type="button" class="button-pay" onclick="document.getElementById('payment_method_input_{{ reservation.id }}').value = document.getElementById('payment_method_{{ reservation.id }}').value; this.parentElement.submit();">Pagar Ahora</button>
-                </form>
+                <select id="payment_method_{{ reservation.id }}" class="payment-method-select">
+                    <option value="tarjeta">💳 Tarjeta</option>
+                    <option value="transferencia">🏦 Transferencia</option>
+                    <option value="paypal">🔷 PayPal</option>
+                    <option value="efectivo">💵 Efectivo</option>
+                </select>
+                <button type="button" class="button-pay button-small" onclick="openPaymentModal('{{ reservation.id }}')">Pagar Ahora</button>
                 {% endif %}
-                <form action="{{ url_for('cancel_reservation', reservation_id=reservation.id) }}" method="POST" style="display:inline-block;">
-                    <button type="submit" class="button-danger">Cancelar</button>
+                <form action="{{ url_for('cancel_reservation', reservation_id=reservation.id) }}" method="POST" style="display:inline-block; margin: 0;">
+                    <button type="submit" class="button-danger button-small">Cancelar</button>
                 </form>
             </div>
         </div>
@@ -66,4 +57,144 @@
     <div class="alert alert-info">No tienes reservas activas por el momento.</div>
     {% endif %}
 </section>
+
+<!-- Modal de Pago -->
+<div id="paymentModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closePaymentModal()">&times;</span>
+        <h2>Información de Pago</h2>
+        
+        <div id="paymentForm">
+            <!-- Tarjeta -->
+            <div id="tarjetaForm" class="payment-form-section">
+                <h3>💳 Pago con Tarjeta</h3>
+                <div class="form-group">
+                    <label>Número de Tarjeta</label>
+                    <input type="text" placeholder="1234 5678 9012 3456" maxlength="19">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Fecha de Vencimiento</label>
+                        <input type="text" placeholder="MM/YY">
+                    </div>
+                    <div class="form-group">
+                        <label>CVV</label>
+                        <input type="text" placeholder="123" maxlength="3">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nombre del Titular</label>
+                    <input type="text" placeholder="Juan Pérez">
+                </div>
+            </div>
+
+            <!-- PayPal -->
+            <div id="paypalForm" class="payment-form-section" style="display: none;">
+                <h3>🔷 Pago con PayPal</h3>
+                <p style="color: var(--neon-lime); margin: 1rem 0;">Se abrirá una ventana de PayPal para completar el pago de forma segura.</p>
+                <div class="form-group">
+                    <label>Email de PayPal</label>
+                    <input type="email" placeholder="tu@email.com">
+                </div>
+            </div>
+
+            <!-- Transferencia -->
+            <div id="transferenciaForm" class="payment-form-section" style="display: none;">
+                <h3>🏦 Transferencia Bancaria</h3>
+                <div class="bank-info">
+                    <p><strong>Datos de la Cuenta:</strong></p>
+                    <p>Banco: XYZ Financial</p>
+                    <p>Cuenta: 123456789</p>
+                    <p>IBAN: ES9121000418450200051332</p>
+                    <p style="color: var(--neon-orange); margin-top: 1rem;">⚠ Por favor, confirma el pago una vez realizado.</p>
+                </div>
+            </div>
+
+            <!-- Efectivo -->
+            <div id="efectivoForm" class="payment-form-section" style="display: none;">
+                <h3>💵 Pago en Efectivo</h3>
+                <p style="color: var(--neon-lime); margin: 1rem 0;">Pago disponible en recepción del hotel.</p>
+                <div class="form-group">
+                    <label>Nombre del Huésped</label>
+                    <input type="text" placeholder="Tu nombre completo">
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+            <button type="button" class="button-secondary" onclick="closePaymentModal()">Cancelar</button>
+            <button type="button" class="button-pay" onclick="submitPayment()">Confirmar Pago</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentReservationId = null;
+
+function updatePaymentForm(method) {
+    // Hide all forms
+    document.getElementById('tarjetaForm').style.display = 'none';
+    document.getElementById('paypalForm').style.display = 'none';
+    document.getElementById('transferenciaForm').style.display = 'none';
+    document.getElementById('efectivoForm').style.display = 'none';
+    
+    // Show selected form
+    if (method === 'tarjeta') {
+        document.getElementById('tarjetaForm').style.display = 'block';
+    } else if (method === 'paypal') {
+        document.getElementById('paypalForm').style.display = 'block';
+    } else if (method === 'transferencia') {
+        document.getElementById('transferenciaForm').style.display = 'block';
+    } else if (method === 'efectivo') {
+        document.getElementById('efectivoForm').style.display = 'block';
+    }
+}
+
+function openPaymentModal(reservationId) {
+    currentReservationId = reservationId;
+    const method = document.getElementById('payment_method_' + reservationId).value;
+    
+    updatePaymentForm(method);
+    document.getElementById('paymentModal').style.display = 'block';
+    
+    // Add listener to update form when payment method changes
+    const select = document.getElementById('payment_method_' + reservationId);
+    select.onchange = function() {
+        updatePaymentForm(this.value);
+    };
+}
+
+function closePaymentModal() {
+    document.getElementById('paymentModal').style.display = 'none';
+    currentReservationId = null;
+}
+
+function submitPayment() {
+    if (currentReservationId) {
+        const method = document.getElementById('payment_method_' + currentReservationId).value;
+        
+        // Create and submit hidden form
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/reservation/' + currentReservationId + '/pay';
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'payment_method';
+        input.value = method;
+        
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('paymentModal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+</script>
 {% endblock %}

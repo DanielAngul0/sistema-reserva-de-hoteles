@@ -448,6 +448,21 @@ def profile():
         )
         response.raise_for_status()
         reservations = response.json()
+        
+        # Enrich reservations with room information
+        try:
+            rooms_response = requests.get(
+                f"{API_GATEWAY_URL}/api/v1/rooms/",
+                headers=get_request_headers(),
+            )
+            if rooms_response.ok:
+                rooms = rooms_response.json()
+                room_dict = {str(room["id"]): room["room_type"] for room in rooms}
+                for res in reservations:
+                    res["room_name"] = room_dict.get(str(res["room_id"]), f"Habitación {res['room_id']}")
+        except:
+            pass
+            
     except requests.exceptions.RequestException as e:
         error = f"No se pudo cargar tus reservas: {e}"
 
