@@ -63,7 +63,7 @@
     <div class="modal-content">
         <span class="close" onclick="closePaymentModal()">&times;</span>
         <h2>Información de Pago</h2>
-        
+
         <div id="paymentForm">
             <!-- Tarjeta -->
             <div id="tarjetaForm" class="payment-form-section">
@@ -137,7 +137,7 @@ function updatePaymentForm(method) {
     document.getElementById('paypalForm').style.display = 'none';
     document.getElementById('transferenciaForm').style.display = 'none';
     document.getElementById('efectivoForm').style.display = 'none';
-    
+
     // Show selected form
     if (method === 'tarjeta') {
         document.getElementById('tarjetaForm').style.display = 'block';
@@ -153,10 +153,10 @@ function updatePaymentForm(method) {
 function openPaymentModal(reservationId) {
     currentReservationId = reservationId;
     const method = document.getElementById('payment_method_' + reservationId).value;
-    
+
     updatePaymentForm(method);
     document.getElementById('paymentModal').style.display = 'block';
-    
+
     // Add listener to update form when payment method changes
     const select = document.getElementById('payment_method_' + reservationId);
     select.onchange = function() {
@@ -172,17 +172,17 @@ function closePaymentModal() {
 function submitPayment() {
     if (currentReservationId) {
         const method = document.getElementById('payment_method_' + currentReservationId).value;
-        
+
         // Create and submit hidden form
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '/reservation/' + currentReservationId + '/pay';
-        
+
         const input = document.createElement('input');
         input.type = 'hidden';
         input.name = 'payment_method';
         input.value = method;
-        
+
         form.appendChild(input);
         document.body.appendChild(form);
         form.submit();

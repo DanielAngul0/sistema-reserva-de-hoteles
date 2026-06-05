@@ -64,6 +64,7 @@ services:
       - hotels_data:/data/db
 
   rooms-service:
+    restart: on-failure
     build: ./services/rooms
     container_name: rooms-service
     ports:

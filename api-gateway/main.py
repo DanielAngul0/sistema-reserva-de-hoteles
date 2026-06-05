@@ -38,14 +38,23 @@ SERVICES = {
 
 def build_service_url(service_name: str, path: str) -> str:
     base_url = SERVICES[service_name].rstrip("/")
+
+    # Endpoint de salud especial
     if path == "health":
         return f"{base_url}/health"
+
+    # Si no hay path, se usa el endpoint base del servicio
     if not path:
+        # Para servicios que tienen su propio prefijo /api/v1/<servicio> en su router
         if service_name in {"hotels", "rooms", "reservations"}:
             return f"{base_url}/api/v1/{service_name}/"
+        # Para auth, el router está en /api/v1 directamente
         return f"{base_url}/api/v1/"
-    # Always include service_name in the path for consistency
-    return f"{base_url}/api/v1/{service_name}/{path}"
+
+    # Para cualquier otra ruta, se reenvía tal cual (sin repetir el nombre del servicio)
+    # Ejemplo: /api/v1/auth/login/ -> /api/v1/login/
+    clean_path = path.lstrip("/")
+    return f"{base_url}/api/v1/{clean_path}"
 
 
 # Función auxiliar para procesar la respuesta del servicio
@@ -100,7 +109,7 @@ async def forward_post(service_name: str, path: str, request: Request):
     try:
         # Get query parameters
         query_params = dict(request.query_params)
-        
+
         # Try to get JSON body, but handle cases where body might be empty
         body = None
         try:
@@ -108,7 +117,7 @@ async def forward_post(service_name: str, path: str, request: Request):
         except (ValueError, json.JSONDecodeError):
             # If no JSON body, that's okay for some requests
             body = None
-        
+
         response = requests.post(
             service_url,
             json=body,

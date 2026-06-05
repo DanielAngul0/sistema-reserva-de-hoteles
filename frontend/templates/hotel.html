@@ -53,12 +53,12 @@
                 <p>No hay habitaciones disponibles en este hotel.</p>
                 {% endif %}
             </div>
-            
+
             {% if rooms %}
             <form action="{{ url_for('hotel_detail', hotel_id=hotel_id) }}" method="POST" class="reservation-form">
                 <fieldset>
                     <legend>Detalles de la reserva</legend>
-                    
+
                     <label for="room_id">Tipo de habitación *</label>
                     <select id="room_id" name="room_id" required>
                         <option value="">-- Selecciona una habitación --</option>

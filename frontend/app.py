@@ -336,11 +336,11 @@ def hotel_detail(hotel_id):
         user = session.get("user")
         if not user:
             return redirect(url_for("login"))
-        
+
         room_id = request.form.get("room_id")
         check_in = request.form.get("check_in")
         check_out = request.form.get("check_out")
-        
+
         if not room_id or not check_in or not check_out:
             error = "Todos los campos son requeridos."
         else:
@@ -448,7 +448,7 @@ def profile():
         )
         response.raise_for_status()
         reservations = response.json()
-        
+
         # Enrich reservations with room information
         try:
             rooms_response = requests.get(
@@ -459,10 +459,12 @@ def profile():
                 rooms = rooms_response.json()
                 room_dict = {str(room["id"]): room["room_type"] for room in rooms}
                 for res in reservations:
-                    res["room_name"] = room_dict.get(str(res["room_id"]), f"Habitación {res['room_id']}")
-        except:
+                    res["room_name"] = room_dict.get(
+                        str(res["room_id"]), f"Habitación {res['room_id']}"
+                    )
+        except Exception:
             pass
-            
+
     except requests.exceptions.RequestException as e:
         error = f"No se pudo cargar tus reservas: {e}"
 
@@ -600,7 +602,7 @@ def pay_reservation(reservation_id):
         return redirect(url_for("login"))
 
     payment_method = request.form.get("payment_method", "tarjeta")
-    
+
     try:
         response = requests.post(
             f"{API_GATEWAY_URL}/api/v1/reservations/{reservation_id}/pay?payment_method={payment_method}",
