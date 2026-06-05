@@ -44,6 +44,7 @@ def build_service_url(service_name: str, path: str) -> str:
         if service_name in {"hotels", "rooms", "reservations"}:
             return f"{base_url}/api/v1/{service_name}/"
         return f"{base_url}/api/v1/"
+    # Always include service_name in the path for consistency
     return f"{base_url}/api/v1/{service_name}/{path}"
 
 
@@ -97,9 +98,21 @@ async def forward_post(service_name: str, path: str, request: Request):
         )
     service_url = build_service_url(service_name, path)
     try:
+        # Get query parameters
+        query_params = dict(request.query_params)
+        
+        # Try to get JSON body, but handle cases where body might be empty
+        body = None
+        try:
+            body = await request.json()
+        except (ValueError, json.JSONDecodeError):
+            # If no JSON body, that's okay for some requests
+            body = None
+        
         response = requests.post(
             service_url,
-            json=await request.json(),
+            json=body,
+            params=query_params,
             headers=get_forward_headers(request),
         )
         return process_response(response)

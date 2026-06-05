@@ -12,7 +12,8 @@ class Reservation(BaseModel):
     check_in: datetime
     check_out: datetime
     status: str = "pending"
-    payment_status: str = "pending"  # pending, completed, cancelled
+    payment_status: str = "pendiente"  # pendiente, pagado, cancelled
+    payment_method: Optional[str] = None  # tarjeta, transferencia, paypal, etc
     total_price: Optional[float] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 

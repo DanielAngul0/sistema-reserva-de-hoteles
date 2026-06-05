@@ -24,7 +24,7 @@
             <p><strong>Entrada:</strong> {{ reservation.check_in }}</p>
             <p><strong>Salida:</strong> {{ reservation.check_out }}</p>
             <p><strong>Estado:</strong> {{ reservation.status }}</p>
-            <p><strong>Pago:</strong> <span class="payment-badge payment-{{ reservation.payment_status if reservation.payment_status else 'pending' }}">{{ reservation.payment_status if reservation.payment_status else 'pending' }}</span></p>
+            <p><strong>Pago:</strong> <span class="payment-badge payment-{{ reservation.payment_status if reservation.payment_status else 'pendiente' }}">{{ 'Pagado' if reservation.payment_status == 'pagado' else 'Pendiente' if reservation.payment_status == 'pendiente' else reservation.payment_status }}</span></p>
             <a href="{{ url_for('profile') }}" class="button-link">Ver mis reservas</a>
             {% else %}
             {% if not current_user %}

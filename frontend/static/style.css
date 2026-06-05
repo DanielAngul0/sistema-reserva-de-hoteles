@@ -562,6 +562,20 @@ button:active,
     box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
 }
 
+.payment-pendiente {
+    background: rgba(255, 102, 0, 0.2);
+    color: var(--neon-orange);
+    border: 1px solid var(--neon-orange);
+    box-shadow: 0 0 15px rgba(255, 102, 0, 0.2);
+}
+
+.payment-pagado {
+    background: rgba(57, 255, 20, 0.2);
+    color: var(--neon-lime);
+    border: 1px solid var(--neon-lime);
+    box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
+}
+
 /* Reservations Container */
 .reservations-container {
     display: grid;

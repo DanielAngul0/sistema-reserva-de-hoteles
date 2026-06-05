@@ -32,8 +32,8 @@
                     <div class="info-group">
                         <label>Estado de Pago</label>
                         <p>
-                            <span class="payment-badge payment-{{ reservation.payment_status if reservation.payment_status else 'pending' }}">
-                                {{ reservation.payment_status if reservation.payment_status else 'pending' }}
+                            <span class="payment-badge payment-{{ reservation.payment_status if reservation.payment_status else 'pendiente' }}">
+                                {{ 'Pagado' if reservation.payment_status == 'pagado' else 'Pendiente' if reservation.payment_status == 'pendiente' else reservation.payment_status }}
                             </span>
                         </p>
                     </div>
@@ -41,9 +41,18 @@
             </div>
             <div class="reservation-footer">
                 <a class="button-link" href="{{ url_for('edit_reservation', reservation_id=reservation.id) }}">Editar</a>
-                {% if reservation.payment_status != 'completed' %}
-                <form action="{{ url_for('pay_reservation', reservation_id=reservation.id) }}" method="POST" style="display:inline-block;">
-                    <button type="submit" class="button-pay">Pagar Ahora</button>
+                {% if reservation.payment_status != 'pagado' %}
+                <div style="display:inline-block; margin: 0 0.5rem;">
+                    <select id="payment_method_{{ reservation.id }}" style="padding: 0.5rem; border-radius: 4px; background: rgba(57, 255, 20, 0.1); color: var(--neon-lime); border: 1px solid var(--neon-lime);">
+                        <option value="tarjeta">💳 Tarjeta</option>
+                        <option value="transferencia">🏦 Transferencia</option>
+                        <option value="paypal">🔷 PayPal</option>
+                        <option value="efectivo">💵 Efectivo</option>
+                    </select>
+                </div>
+                <form action="{{ url_for('pay_reservation', reservation_id=reservation.id) }}" method="POST" style="display:inline-block; margin: 0;">
+                    <input type="hidden" name="payment_method" id="payment_method_input_{{ reservation.id }}" value="tarjeta">
+                    <button type="button" class="button-pay" onclick="document.getElementById('payment_method_input_{{ reservation.id }}').value = document.getElementById('payment_method_{{ reservation.id }}').value; this.parentElement.submit();">Pagar Ahora</button>
                 </form>
                 {% endif %}
                 <form action="{{ url_for('cancel_reservation', reservation_id=reservation.id) }}" method="POST" style="display:inline-block;">

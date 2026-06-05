@@ -584,9 +584,11 @@ def pay_reservation(reservation_id):
     if not user:
         return redirect(url_for("login"))
 
+    payment_method = request.form.get("payment_method", "tarjeta")
+    
     try:
         response = requests.post(
-            f"{API_GATEWAY_URL}/api/v1/reservations/{reservation_id}/pay",
+            f"{API_GATEWAY_URL}/api/v1/reservations/{reservation_id}/pay?payment_method={payment_method}",
             headers=get_request_headers(),
         )
         response.raise_for_status()

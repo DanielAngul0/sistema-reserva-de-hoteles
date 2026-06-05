@@ -197,6 +197,9 @@ async def get_hotels():
     collection = get_collection("hotels")
     hotels = []
     async for hotel in collection.find():
+        # If _id is null, generate one from the name
+        if hotel.get("_id") is None:
+            hotel["_id"] = hotel.get("name", "unknown").lower().replace(" ", "-")
         hotel["id"] = str(hotel["_id"])
         del hotel["_id"]
         hotels.append(HotelRead(**hotel))

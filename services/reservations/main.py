@@ -93,14 +93,16 @@ def delete_reservation(reservation_id: str):
 
 
 @router.post("/reservations/{reservation_id}/pay", response_model=ReservationRead)
-def process_payment(reservation_id: str):
+def process_payment(reservation_id: str, payment_method: str = None):
     """Procesa el pago de una reserva"""
     redis_client = get_redis_client()
     data = redis_client.get(f"reservation:{reservation_id}")
     if data:
         res_dict = json.loads(data)
-        res_dict["payment_status"] = "completed"
-        res_dict["status"] = "confirmed"
+        res_dict["payment_status"] = "pagado"
+        res_dict["status"] = "confirmada"
+        if payment_method:
+            res_dict["payment_method"] = payment_method
         redis_client.set(f"reservation:{reservation_id}", json.dumps(res_dict))
         return ReservationRead(**res_dict)
     raise HTTPException(status_code=404, detail="Reservation not found")

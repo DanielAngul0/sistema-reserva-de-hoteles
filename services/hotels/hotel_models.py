@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 from typing import Optional
 from datetime import datetime
 
@@ -6,7 +6,7 @@ from datetime import datetime
 
 
 class Hotel(BaseModel):
-    id: Optional[str] = Field(default=None, alias="_id")
+    id: Optional[str] = None
     name: str
     location: str
     description: Optional[str] = None
@@ -15,7 +15,6 @@ class Hotel(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Config:
-        allow_population_by_field_name = True
         json_encoders = {datetime: lambda v: v.isoformat()}
 
 
