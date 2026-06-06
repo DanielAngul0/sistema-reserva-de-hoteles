@@ -51,10 +51,15 @@ def build_service_url(service_name: str, path: str) -> str:
         # Para auth, el router está en /api/v1 directamente
         return f"{base_url}/api/v1/"
 
-    # Para cualquier otra ruta, se reenvía tal cual (sin repetir el nombre del servicio)
-    # Ejemplo: /api/v1/auth/login/ -> /api/v1/login/
+    # Para cualquier otra ruta
     clean_path = path.lstrip("/")
-    return f"{base_url}/api/v1/{clean_path}"
+    
+    # Para servicios como hotels, rooms, reservations que incluyen su nombre en la ruta
+    if service_name in {"hotels", "rooms", "reservations"}:
+        return f"{base_url}/api/v1/{service_name}/{clean_path}"
+    # Para auth, no repetir el nombre del servicio
+    else:
+        return f"{base_url}/api/v1/{clean_path}"
 
 
 # Función auxiliar para procesar la respuesta del servicio
