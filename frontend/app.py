@@ -340,7 +340,8 @@ def hotel_detail(hotel_id):
         room_id = request.form.get("room_id")
         check_in = request.form.get("check_in")
         check_out = request.form.get("check_out")
-
+        room_price = request.form.get("room_price")
+        
         if not room_id or not check_in or not check_out:
             error = "Todos los campos son requeridos."
         else:
@@ -349,16 +350,24 @@ def hotel_detail(hotel_id):
                 "room_id": room_id,
                 "check_in": check_in,
                 "check_out": check_out,
+                "room_price": float(room_price) if room_price else None,
             }
-
+            
             try:
                 response = requests.post(
                     f"{API_GATEWAY_URL}/api/v1/reservations/",
-                    json=reservation_data,
-                    headers=get_request_headers(),
+                    json=reservation_data
                 )
                 response.raise_for_status()
                 reservation = response.json()
+                return render_template(
+                    "hotel.html",
+                    title=hotel["name"],
+                    hotel=hotel,
+                    hotel_id=hotel_id,
+                    rooms=rooms,
+                    reservation=reservation,
+                )
             except requests.exceptions.RequestException as e:
                 error = f"No se pudo crear la reserva: {e}"
 
@@ -595,11 +604,28 @@ def about():
     return render_template("about.html", title="¿Cómo reservar?")
 
 
+@app.route("/api/v1/reservations/<reservation_id>", methods=["GET"])
+def get_reservation_api(reservation_id):
+    user = session.get("user")
+    if not user:
+        return {"error": "Not authenticated"}, 401
+    
+    try:
+        response = requests.get(
+            f"{API_GATEWAY_URL}/api/v1/reservations/{reservation_id}",
+            headers=get_request_headers(),
+        )
+        response.raise_for_status()
+        return response.json(), 200
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}, 400
+
+
 @app.route("/reservation/<reservation_id>/pay", methods=["POST"])
 def pay_reservation(reservation_id):
     user = session.get("user")
     if not user:
-        return redirect(url_for("login"))
+        return {"error": "Not authenticated"}, 401
 
     payment_method = request.form.get("payment_method", "tarjeta")
 
@@ -609,10 +635,60 @@ def pay_reservation(reservation_id):
             headers=get_request_headers(),
         )
         response.raise_for_status()
+        # Retornar JSON para que el JavaScript maneje la respuesta
+        return {"success": True}, 200
+    except requests.exceptions.RequestException as e:
+        # En caso de error, retornar error JSON
+        return {"error": str(e)}, 500
+
+
+@app.route("/reservation/<reservation_id>/receipt")
+def payment_receipt(reservation_id):
+    """Página de recibo de pago exitoso"""
+    user = session.get("user")
+    if not user:
+        return redirect(url_for("login"))
+    
+    reservation = None
+    try:
+        response = requests.get(
+            f"{API_GATEWAY_URL}/api/v1/reservations/{reservation_id}",
+            headers=get_request_headers(),
+        )
+        response.raise_for_status()
+        reservation = response.json()
+        
+        # Validar que la reserva pertenece al usuario
+        if str(reservation.get("user_id")) != str(user.get("id")):
+            return redirect(url_for("profile"))
+            
     except requests.exceptions.RequestException:
         pass
-    return redirect(url_for("profile"))
+    
+    if not reservation:
+        return redirect(url_for("profile"))
+    
+    return render_template("payment_receipt.html", reservation=reservation)
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+@app.route("/reservation/<reservation_id>/error")
+def payment_error(reservation_id):
+    """Página de error de pago"""
+    user = session.get("user")
+    if not user:
+        return redirect(url_for("login"))
+    
+    error_msg = request.args.get("error", "Ha ocurrido un error al procesar el pago")
+    reservation = None
+    
+    try:
+        response = requests.get(
+            f"{API_GATEWAY_URL}/api/v1/reservations/{reservation_id}",
+            headers=get_request_headers(),
+        )
+        response.raise_for_status()
+        reservation = response.json()
+    except requests.exceptions.RequestException:
+        pass
+    
+    return render_template("payment_error.html", reservation=reservation, error=error_msg)

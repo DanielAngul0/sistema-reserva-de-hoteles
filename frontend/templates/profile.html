@@ -25,14 +25,12 @@
                         <label>Fecha de Salida</label>
                         <p>{{ reservation.check_out }}</p>
                     </div>
+                    {% if reservation.total_price %}
                     <div class="info-group">
-                        <label>Estado de Pago</label>
-                        <p>
-                            <span class="payment-badge payment-{{ reservation.payment_status if reservation.payment_status else 'pendiente' }}">
-                                {{ 'Pagado' if reservation.payment_status == 'pagado' else 'Pendiente' if reservation.payment_status == 'pendiente' else reservation.payment_status }}
-                            </span>
-                        </p>
+                        <label>Costo Total</label>
+                        <p style="color: var(--neon-lime); font-weight: bold;">${{ "%.2f"|format(reservation.total_price) }} USD</p>
                     </div>
+                    {% endif %}
                 </div>
             </div>
             <div class="reservation-footer">
@@ -46,9 +44,7 @@
                 </select>
                 <button type="button" class="button-pay button-small" onclick="openPaymentModal('{{ reservation.id }}')">Pagar Ahora</button>
                 {% endif %}
-                <form action="{{ url_for('cancel_reservation', reservation_id=reservation.id) }}" method="POST" style="display:inline-block; margin: 0;">
-                    <button type="submit" class="button-danger button-small">Cancelar</button>
-                </form>
+                <button type="button" class="button-danger button-small" onclick="openCancelModal('{{ reservation.id }}', '{{ reservation.room_name or 'Habitación ' + reservation.room_id|string }}')">Cancelar</button>
             </div>
         </div>
         {% endfor %}
@@ -128,6 +124,103 @@
     </div>
 </div>
 
+<!-- Modal de Recibo -->
+<div id="receiptModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeReceiptModal()">&times;</span>
+        <div style="text-align: center;">
+            <h2 style="color: var(--neon-lime); margin-bottom: 1rem;">✓ ¡Pago Confirmado!</h2>
+            <p style="color: var(--neon-cyan); margin-bottom: 1.5rem;">Tu reserva ha sido confirmada exitosamente</p>
+        </div>
+        
+        <div style="background: rgba(0,217,255,0.1); border-left: 3px solid var(--neon-cyan); padding: 1.5rem; margin: 1.5rem 0; border-radius: 0.3rem;">
+            <div style="margin: 1rem 0;">
+                <label style="color: var(--neon-gray); font-size: 0.9rem;">ID de Reserva</label>
+                <p id="receiptReservationId" style="color: var(--neon-lime); font-family: monospace; word-break: break-all; margin: 0.3rem 0;"></p>
+            </div>
+            
+            <div style="margin: 1rem 0;">
+                <label style="color: var(--neon-gray); font-size: 0.9rem;">Habitación</label>
+                <p id="receiptRoomName" style="color: var(--neon-cyan); margin: 0.3rem 0;"></p>
+            </div>
+            
+            <div style="margin: 1rem 0;">
+                <label style="color: var(--neon-gray); font-size: 0.9rem;">Fecha de Entrada</label>
+                <p id="receiptCheckIn" style="color: var(--neon-cyan); margin: 0.3rem 0;"></p>
+            </div>
+            
+            <div style="margin: 1rem 0;">
+                <label style="color: var(--neon-gray); font-size: 0.9rem;">Fecha de Salida</label>
+                <p id="receiptCheckOut" style="color: var(--neon-cyan); margin: 0.3rem 0;"></p>
+            </div>
+            
+            <div style="margin: 1rem 0;">
+                <label style="color: var(--neon-gray); font-size: 0.9rem;">Noches</label>
+                <p id="receiptNights" style="color: var(--neon-cyan); margin: 0.3rem 0;"></p>
+            </div>
+            
+            <div style="margin: 1rem 0;">
+                <label style="color: var(--neon-gray); font-size: 0.9rem;">Precio por Noche</label>
+                <p id="receiptRoomPrice" style="color: var(--neon-cyan); margin: 0.3rem 0;"></p>
+            </div>
+            
+            <div style="margin: 1rem 0;">
+                <label style="color: var(--neon-gray); font-size: 0.9rem;">Método de Pago</label>
+                <p id="receiptPaymentMethod" style="color: var(--neon-cyan); margin: 0.3rem 0;"></p>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid var(--neon-cyan); margin: 1.5rem 0; opacity: 0.3;">
+            
+            <div style="background: rgba(255,0,110,0.1); border: 1px solid var(--neon-pink); padding: 1rem; border-radius: 0.3rem;">
+                <label style="color: var(--neon-gray); font-size: 0.9rem;">COSTO TOTAL</label>
+                <p id="receiptTotal" style="color: var(--neon-pink); font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0 0 0;"></p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center;">
+            <button type="button" class="button-primary" onclick="closeReceiptModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Cancelación -->
+<div id="cancelModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeCancelModal()">&times;</span>
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h2 style="color: var(--neon-pink); margin: 0 0 0.5rem 0;">⚠ Cancelar Reserva</h2>
+            <p style="color: var(--neon-cyan); margin: 0;">¿Estás seguro de que deseas cancelar esta reserva?</p>
+        </div>
+        
+        <div style="background: rgba(255,0,110,0.1); border-left: 3px solid var(--neon-pink); padding: 1.5rem; margin: 1.5rem 0; border-radius: 0.3rem;">
+            <div style="margin-bottom: 1rem;">
+                <label style="color: var(--neon-gray); font-size: 0.85rem;">Habitación</label>
+                <p id="cancelRoomName" style="color: var(--neon-cyan); margin: 0.3rem 0; margin-top: 0.2rem; font-weight: bold;"></p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label style="color: var(--neon-gray); font-size: 0.85rem;">Entrada</label>
+                    <p id="cancelCheckIn" style="color: var(--neon-cyan); margin: 0.3rem 0; margin-top: 0.2rem;"></p>
+                </div>
+                <div>
+                    <label style="color: var(--neon-gray); font-size: 0.85rem;">Salida</label>
+                    <p id="cancelCheckOut" style="color: var(--neon-cyan); margin: 0.3rem 0; margin-top: 0.2rem;"></p>
+                </div>
+            </div>
+            
+            <p style="color: var(--neon-orange); margin-top: 1rem; font-size: 0.9rem;">
+                ⚠ Esta acción no se puede deshacer
+            </p>
+        </div>
+        
+        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center;">
+            <button type="button" class="button-secondary" onclick="closeCancelModal()">No, Mantener</button>
+            <button type="button" class="button-danger" onclick="confirmCancel()">Sí, Cancelar Reserva</button>
+        </div>
+    </div>
+</div>
+
 <script>
 let currentReservationId = null;
 
@@ -172,21 +265,77 @@ function closePaymentModal() {
 function submitPayment() {
     if (currentReservationId) {
         const method = document.getElementById('payment_method_' + currentReservationId).value;
-
-        // Create and submit hidden form
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/reservation/' + currentReservationId + '/pay';
-
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'payment_method';
-        input.value = method;
-
-        form.appendChild(input);
-        document.body.appendChild(form);
-        form.submit();
+        
+        closePaymentModal();
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('payment_method', method);
+        
+        // Send payment request
+        fetch(`/reservation/${currentReservationId}/pay`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.ok ? r.json() : Promise.reject('Payment failed'))
+        .then(paymentResponse => {
+            // After payment succeeds, fetch reservation details
+            return fetch(`/api/v1/reservations/${currentReservationId}`)
+                .then(r => r.ok ? r.json() : Promise.reject());
+        })
+        .then(res => {
+            const checkIn = new Date(res.check_in);
+            const checkOut = new Date(res.check_out);
+            const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+            const total = res.total_price || (res.room_price * nights);
+            
+            document.getElementById('receiptReservationId').textContent = res.id;
+            document.getElementById('receiptRoomName').textContent = res.room_name || res.room_id;
+            document.getElementById('receiptCheckIn').textContent = checkIn.toLocaleDateString('es-ES', {year: 'numeric', month: 'long', day: 'numeric'});
+            document.getElementById('receiptCheckOut').textContent = checkOut.toLocaleDateString('es-ES', {year: 'numeric', month: 'long', day: 'numeric'});
+            document.getElementById('receiptNights').textContent = nights + (nights === 1 ? ' noche' : ' noches');
+            document.getElementById('receiptRoomPrice').textContent = '$' + (res.room_price || 0).toFixed(2) + ' USD';
+            document.getElementById('receiptPaymentMethod').textContent = {tarjeta: '💳 Tarjeta de Crédito', paypal: '🔷 PayPal', transferencia: '🏦 Transferencia Bancaria', efectivo: '💵 Efectivo'}[res.payment_method] || res.payment_method;
+            document.getElementById('receiptTotal').textContent = '$' + total.toFixed(2) + ' USD';
+            document.getElementById('receiptModal').style.display = 'block';
+        })
+        .catch(err => {
+            alert('Error procesando el pago: ' + err);
+        });
     }
+}
+
+function closeReceiptModal() {
+    document.getElementById('receiptModal').style.display = 'none';
+    setTimeout(() => location.reload(), 500);
+}
+
+function openCancelModal(reservationId, roomName) {
+    fetch(`/api/v1/reservations/${reservationId}`)
+        .then(r => r.json())
+        .then(res => {
+            const checkIn = new Date(res.check_in);
+            const checkOut = new Date(res.check_out);
+            document.getElementById('cancelRoomName').textContent = roomName;
+            document.getElementById('cancelCheckIn').textContent = checkIn.toLocaleDateString('es-ES', {year: 'numeric', month: 'long', day: 'numeric'});
+            document.getElementById('cancelCheckOut').textContent = checkOut.toLocaleDateString('es-ES', {year: 'numeric', month: 'long', day: 'numeric'});
+            document.getElementById('cancelModal').dataset.reservationId = reservationId;
+            document.getElementById('cancelModal').style.display = 'block';
+        }).catch(() => alert('Error al obtener detalles'));
+}
+
+function closeCancelModal() {
+    document.getElementById('cancelModal').style.display = 'none';
+}
+
+function confirmCancel() {
+    const reservationId = document.getElementById('cancelModal').dataset.reservationId;
+    fetch(`/reservation/${reservationId}/cancel`, {method: 'POST'})
+        .then(r => location.reload())
+        .catch(() => {
+            alert('Error al cancelar');
+            closeCancelModal();
+        });
 }
 
 // Close modal when clicking outside

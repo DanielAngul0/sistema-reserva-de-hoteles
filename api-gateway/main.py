@@ -24,7 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-router = APIRouter(prefix="/api/v1")
+router = APIRouter()
 
 SERVICES = {
     "auth": os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001"),
@@ -79,8 +79,13 @@ def process_response(response: requests.Response):
         raise HTTPException(status_code=response.status_code, detail=error_message)
 
 
-@router.get("/{service_name}/{path:path}")
-async def forward_get(service_name: str, path: str, request: Request):
+@router.get("/api/v1/{rest:path}")
+async def forward_get(rest: str, request: Request):
+    # Parsear service y path desde rest
+    parts = rest.split("/", 1)
+    service_name = parts[0]
+    path = parts[1] if len(parts) > 1 else ""
+    
     if service_name not in SERVICES:
         raise HTTPException(
             status_code=404, detail=f"Service '{service_name}' not found."
@@ -99,8 +104,13 @@ async def forward_get(service_name: str, path: str, request: Request):
         )
 
 
-@router.post("/{service_name}/{path:path}")
-async def forward_post(service_name: str, path: str, request: Request):
+@router.post("/api/v1/{rest:path}")
+async def forward_post(rest: str, request: Request):
+    # Parsear service y path desde rest
+    parts = rest.split("/", 1)
+    service_name = parts[0]
+    path = parts[1] if len(parts) > 1 else ""
+    
     if service_name not in SERVICES:
         raise HTTPException(
             status_code=404, detail=f"Service '{service_name}' not found."
@@ -131,8 +141,13 @@ async def forward_post(service_name: str, path: str, request: Request):
         )
 
 
-@router.put("/{service_name}/{path:path}")
-async def forward_put(service_name: str, path: str, request: Request):
+@router.put("/api/v1/{rest:path}")
+async def forward_put(rest: str, request: Request):
+    # Parsear service y path desde rest
+    parts = rest.split("/", 1)
+    service_name = parts[0]
+    path = parts[1] if len(parts) > 1 else ""
+    
     if service_name not in SERVICES:
         raise HTTPException(
             status_code=404, detail=f"Service '{service_name}' not found."
@@ -151,8 +166,13 @@ async def forward_put(service_name: str, path: str, request: Request):
         )
 
 
-@router.delete("/{service_name}/{path:path}")
-async def forward_delete(service_name: str, path: str, request: Request):
+@router.delete("/api/v1/{rest:path}")
+async def forward_delete(rest: str, request: Request):
+    # Parsear service y path desde rest
+    parts = rest.split("/", 1)
+    service_name = parts[0]
+    path = parts[1] if len(parts) > 1 else ""
+    
     if service_name not in SERVICES:
         raise HTTPException(
             status_code=404, detail=f"Service '{service_name}' not found."
